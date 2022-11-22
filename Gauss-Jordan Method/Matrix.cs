@@ -9,11 +9,57 @@ namespace Gauss_Jordan_Method
 			MainMatrix = matrix;
 			Results = results;
 			Determinant = GetDeterminant();
+			Variables = InitVariables();
+		}
+
+		public Matrix(Matrix matrix)
+		{
+			MainMatrix = matrix.CopyMatrix();
+			Results = matrix.CopyResultVector();
+			Determinant = GetDeterminant();
+			Variables = matrix.CopyVariables();
+		}
+
+		public Matrix()
+		{
 		}
 
 		public double[,] MainMatrix { get; set; }
 		public double[] Results { get; set; }
 		public double Determinant { get; private set; }
+		public int Size { get => MainMatrix.GetLength(0); }
+		public readonly List<string> Variables;
+
+		public double this[int row, int col]
+		{
+			get
+			{
+				if (col > this.Size - 1 && col == this.Size)
+					return Results[row];
+				return MainMatrix[row, col];
+			}
+			set
+			{
+				if (col > this.Size - 1 && col == this.Size)
+				{
+					Results[row] = value;
+					return;
+				}
+				MainMatrix[row, col] = value;
+			}
+		}
+
+		private List<string> InitVariables()
+		{
+			var variables = new List<string>();
+			for (int i = 0; i < Size; i++)
+			{
+				variables.Add($"x{i}");
+			}
+			return variables;
+		}
+
+		private List<string> CopyVariables() => Variables is null ? InitVariables() : new(Variables);
 
 		private double GetDeterminant()
 		{
@@ -68,12 +114,6 @@ namespace Gauss_Jordan_Method
 			return (det / total);
 		}
 
-		private double[,] Swap(double[,] arr, int i1, int j1, int i2, int j2)
-		{
-			(arr[i2, j2], arr[i1, j1]) = (arr[i1, j1], arr[i2, j2]);
-			return arr;
-		}
-
 		private double[,] CopyMatrix()
 		{
 			var n = MainMatrix.GetLength(0);
@@ -100,79 +140,39 @@ namespace Gauss_Jordan_Method
 
 			return vec;
 		}
-
-		public Matrix GaussJordanSolve()
+		private double[,] Swap(double[,] m, int i1, int j1, int i2, int j2)
 		{
-			Matrix result = new(CopyMatrix(), CopyResultVector());
-			// Pivoteo, for externo para cada diagonal
-			for (int row = 0; row < MainMatrix.GetLength(0); row++)
-			{
-				// Columna n, obtención del valor más alto
-				double max = 0;
-				int maxIndex = 0;
-				for (int col = MainMatrix.GetLength(0) - 1; col >= row; col--)
-				{
-					double temp = Math.Abs(result.MainMatrix[col, row]);
-					if (temp > max)
-					{
-						max = temp;
-						maxIndex = col;
-					}
-				}
-
-				max = result.MainMatrix[maxIndex, row];
-
-				if (row != maxIndex)
-				{
-					SwapRow(result, row, maxIndex);
-					maxIndex = row;
-				}
-
-				// Dividiendo fila entre el máximo
-				for (int j = 0; j < MainMatrix.GetLength(0); j++)
-				{
-					result.MainMatrix[maxIndex, j] /= max;
-				}
-				result.Results[maxIndex] /= max;
-
-				// Resolviendo ceros
-				for (int i = 0; i < MainMatrix.GetLength(0); i++)
-				{
-					if (i == maxIndex) continue;
-					// Haciendo ceros
-					for (int j = 0; j < MainMatrix.GetLength(0); j++)
-					{
-						result.MainMatrix[i, j] -= result.MainMatrix[i, j] * result.MainMatrix[maxIndex, j];
-					}
-					result.Results[i] -= result.Results[i] * result.Results[maxIndex];
-				}
-
-				// Restaurando ceros positivos
-				for (int j = 0; j < MainMatrix.GetLength(0); j++)
-				{
-					if (result.MainMatrix[maxIndex, j] == -0)
-						result.MainMatrix[maxIndex, j] = Math.Abs(result.MainMatrix[maxIndex, j]);
-				}
-			}
-
-			// TODO
-			return result;
+			(m[i2, j2], m[i1, j1]) = (m[i1, j1], m[i2, j2]);
+			return m;
 		}
 
-		private void SwapRow(Matrix matrix, int a, int b)
+		public void SwapRow(Matrix matrix, int a, int b)
 		{
-			var temp = new double[matrix.MainMatrix.GetLength(0)];
-			double resultValue;
+			var tempRow = new double[matrix.MainMatrix.GetLength(0)];
+			double tempResultValue;
 			for (int i = 0; i < matrix.MainMatrix.GetLength(0); i++)
 			{
-				temp[i] = matrix.MainMatrix[a, i];
+				tempRow[i] = matrix.MainMatrix[a, i];
 				matrix.MainMatrix[a, i] = matrix.MainMatrix[b, i];
-				matrix.MainMatrix[b, i] = temp[i];
+				matrix.MainMatrix[b, i] = tempRow[i];
 			}
 
-			resultValue = matrix.Results[a];
+			tempResultValue = matrix.Results[a];
 			matrix.Results[a] = matrix.Results[b];
-			matrix.Results[b] = resultValue;
+			matrix.Results[b] = tempResultValue;
+		}
+
+		public void SwapColumn(Matrix matrix, int a, int b)
+		{
+			var tempColumn = new double[matrix.MainMatrix.GetLength(0)];
+			for (int i = 0; i < matrix.MainMatrix.GetLength(0); i++)
+			{
+				tempColumn[i] = matrix.MainMatrix[i, a];
+				matrix.MainMatrix[i, a] = matrix.MainMatrix[i, b];
+				matrix.MainMatrix[i, b] = tempColumn[i];
+			}
+
+			(Variables[b], Variables[a]) = (Variables[a], Variables[b]);
 		}
 
 		public override string ToString()

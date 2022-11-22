@@ -137,7 +137,7 @@ namespace Gauss_Jordan_Method
 			}
 
 			this.Hide();
-			var solution = new GaussJordanSolver(FormToMatrix());
+			var solution = new ResultsWindow(FormToMatrix());
 			solution.FormClosed += (s, args) =>
 			{
 				this.Show();
