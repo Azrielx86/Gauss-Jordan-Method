@@ -11,7 +11,7 @@ Las prácticas 1 y 2 están disponibles en <a href="https://github.com/EdgarsFei
 ![](docs/start_screen.png)
 ### Creación de una matriz
 
-![](docs/matrix_solution.png)
+![](docs/matrix_creation.png)
 
 ### Muestra de los resultados
 
