@@ -1,11 +1,11 @@
-﻿using Newtonsoft.Json;
-using System.Drawing.Drawing2D;
+﻿using Gauss_Jordan_Method.Exceptions;
+using Newtonsoft.Json;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Gauss_Jordan_Method
 {
-	public partial class MatrixCreator : Form
+    public partial class MatrixCreator : Form
 	{
 		public MatrixCreator()
 		{
@@ -42,7 +42,7 @@ namespace Gauss_Jordan_Method
 			string prev = tb.Text;
 			tb.KeyPress += (object? snd, KeyPressEventArgs kpe) =>
 			{
-				var reInput = new Regex(@"\d|\.|[\b]");
+				var reInput = new Regex(@"-|\d|\.|[\b]");
 				var reTb = new Regex(@"^-{0,1}\d+\.{0,1}\d*$");
 
 				if (!reInput.IsMatch(kpe.KeyChar.ToString()) && !reTb.IsMatch(tb.Text))
@@ -130,19 +130,27 @@ namespace Gauss_Jordan_Method
 
 		private void OnSolveClicked(object sender, EventArgs e)
 		{
-			if (FormToMatrix().Determinant == 0)
-			{
-				MessageBox.Show("El determinante es igual a cero");
-				return;
-			}
+			//if (FormToMatrix().Determinant == 0)
+			//{
+			//	MessageBox.Show("El determinante es igual a cero");
+			//	return;
+			//}
 
 			this.Hide();
-			var solution = new ResultsWindow(FormToMatrix());
-			solution.FormClosed += (s, args) =>
+			try
 			{
+				var solution = new ResultsWindow(FormToMatrix());
+				solution.FormClosed += (s, args) =>
+				{
+					this.Show();
+				};
+				solution.Show();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message);
 				this.Show();
-			};
-			solution.Show();
+			}
 		}
 	}
 }

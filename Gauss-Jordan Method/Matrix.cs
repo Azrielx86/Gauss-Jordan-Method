@@ -2,6 +2,9 @@
 
 namespace Gauss_Jordan_Method
 {
+	/// <summary>
+	/// Encapsulates a square matrix with its result vector, adding the necessary methods to perform the operations
+	/// </summary>
 	public class Matrix
 	{
 		public Matrix(double[,] matrix, double[] results)
@@ -20,9 +23,11 @@ namespace Gauss_Jordan_Method
 			Variables = matrix.CopyVariables();
 		}
 
+#pragma warning disable CS8618
+		// Necesary to deserealize a JSON to a object
 		public Matrix()
-		{
-		}
+		{ }
+#pragma warning restore CS8618
 
 		public double[,] MainMatrix { get; set; }
 		public double[] Results { get; set; }
@@ -61,57 +66,31 @@ namespace Gauss_Jordan_Method
 
 		private List<string> CopyVariables() => Variables is null ? InitVariables() : new(Variables);
 
+		/// <summary>
+		/// Gets the determinant using the Bareiss algorithm
+		/// </summary>
+		/// <returns>Determinant of the matrix</returns>
 		private double GetDeterminant()
 		{
 			if (MainMatrix is null) return 0;
-			int n = MainMatrix.GetLength(0);
-			double[,] mat = CopyMatrix();
+			double[,] tempMatrix = CopyMatrix();
+			int n = tempMatrix.GetLength(0) - 1;
 
-			double num1, num2, total = 1, det = 1;
-			int index;
-
-			double[] temp = new double[n + 1];
-
-			for (int i = 0; i < n; i++)
+			for (int k = 0; k < n; k++)
 			{
-				index = i;
-
-				while (index < n && mat[index, i] == 0)
+				for (int i = k + 1; i <= n; i++)
 				{
-					index++;
-				}
-
-				if (index == n)
-				{
-					continue;
-				}
-
-				if (index != i)
-				{
-					for (int j = 0; j < n; j++)
-						Swap(mat, index, j, i, j);
-
-					det = (int)(det * Math.Pow(-1, index - i));
-				}
-
-				for (int j = 0; j < n; j++)
-					temp[j] = mat[i, j];
-
-				for (int j = i + 1; j < n; j++)
-				{
-					num1 = temp[i];
-					num2 = mat[j, i];
-					for (int k = 0; k < n; k++)
-						mat[j, k] = (num1 * mat[j, k]) - (num2 * temp[k]);
-
-					total *= num1;
+					for (int j = k + 1; j <= n; j++)
+					{
+						double minEnd = tempMatrix[k, k] * tempMatrix[i, j];
+						double subtr = tempMatrix[i, k] * tempMatrix[k, j];
+						double result = (minEnd - subtr) / (k == 0 ? 1 : tempMatrix[k - 1, k - 1]);
+						tempMatrix[i, j] = result;
+					}
 				}
 			}
 
-			for (int i = 0; i < n; i++)
-				det *= mat[i, i];
-
-			return (det / total);
+			return tempMatrix[tempMatrix.GetLength(0) - 1, n];
 		}
 
 		private double[,] CopyMatrix()
@@ -140,6 +119,7 @@ namespace Gauss_Jordan_Method
 
 			return vec;
 		}
+
 		private double[,] Swap(double[,] m, int i1, int j1, int i2, int j2)
 		{
 			(m[i2, j2], m[i1, j1]) = (m[i1, j1], m[i2, j2]);
